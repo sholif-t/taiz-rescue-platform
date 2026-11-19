@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>منصة إنقاذ تعز | Taiz Rescue Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Cairo', 'Inter', sans-serif; }
+    [dir="ltr"] body { font-family: 'Inter', 'Cairo', sans-serif; }
+    .tab-btn.active { background-color: #064e3b; color: #ffffff; border-color: #064e3b; box-shadow: 0 4px 12px rgba(6, 78, 59, 0.2); }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-emerald-800 selection:text-white">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-b from-emerald-950 via-emerald-900 to-emerald-800 text-white shadow-lg">
+    <div class="max-w-5xl mx-auto px-4 py-6 sm:py-8">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shadow-inner">
+            <svg class="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V7l8-4z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/>
+            </svg>
+          </div>
+          <div>
+            <h1 data-i18n="title" class="text-2xl sm:text-3xl font-extrabold tracking-tight">منصة إنقاذ تعز</h1>
+            <p data-i18n="subtitle" class="text-emerald-200 text-sm sm:text-base font-medium">معاً لإنقاذ الإنسان، وبناء الأمل</p>
+          </div>
+        </div>
+        <button id="langToggle" onclick="toggleLanguage()" class="px-4 py-2 rounded-xl bg-white text-emerald-950 font-bold text-sm shadow hover:bg-amber-50 transition">
+          English
+        </button>
+      </div>
+
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs sm:text-sm text-emerald-100 mb-4">
+        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <span data-i18n="demoBadge">نسخة تجريبية أولية • غير مخصصة للبيانات الحقيقية</span>
+      </div>
+
+      <p data-i18n="heroDesc" class="text-emerald-50/95 text-sm sm:text-base leading-relaxed max-w-3xl">
+        منصة مستقلة لتنظيم طلبات المساعدة والتبرعات والرعاية الطبية، مع توثيق القرارات والعمليات وتعزيز الشفافية.
+      </p>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+    <!-- Security Banner -->
+    <div class="bg-amber-50 border border-amber-300/80 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-sm">
+      <svg class="w-6 h-6 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      </svg>
+      <p data-i18n="securityNotice" class="text-xs sm:text-sm text-amber-950 leading-relaxed">
+        <strong>تنبيه أمان:</strong> هذه واجهة تجريبية تعمل داخل المتصفح فقط. لا ترفع هويات أو جوازات أو تقارير طبية حقيقية، ولا ترسل أموالاً عبرها. لا يوجد حالياً خادم آمن أو قاعدة بيانات أو تحقق رسمي أو بوابة دفع.
+      </p>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+      <button onclick="switchTab('home')" id="tab-home" class="tab-btn active px-3 py-3 rounded-xl bg-white border border-slate-200 font-bold text-xs sm:text-sm text-slate-700 hover:border-emerald-700 transition text-center" data-i18n="navHome">الرئيسية</button>
+      <button onclick="switchTab('aid')" id="tab-aid" class="tab-btn px-3 py-3 rounded-xl bg-white border border-slate-200 font-bold text-xs sm:text-sm text-slate-700 hover:border-emerald-700 transition text-center" data-i18n="navAid">طلب مساعدة</button>
+      <button onclick="switchTab('donate')" id="tab-donate" class="tab-btn px-3 py-3 rounded-xl bg-white border border-slate-200 font-bold text-xs sm:text-sm text-slate-700 hover:border-emerald-700 transition text-center" data-i18n="navDonate">متبرع / مساهم</button>
+      <button onclick="switchTab('org')" id="tab-org" class="tab-btn px-3 py-3 rounded-xl bg-white border border-slate-200 font-bold text-xs sm:text-sm text-slate-700 hover:border-emerald-700 transition text-center" data-i18n="navOrg">منظمة / جمعية</button>
+      <button onclick="switchTab('medical')" id="tab-medical" class="tab-btn px-3 py-3 rounded-xl bg-white border border-slate-200 font-bold text-xs sm:text-sm text-slate-700 hover:border-emerald-700 transition text-center" data-i18n="navMedical">الرعاية الطبية</button>
+      <button onclick="switchTab('admin')" id="tab-admin" class="tab-btn px-3 py-3 rounded-xl bg-white border border-slate-200 font-bold text-xs sm:text-sm text-slate-700 hover:border-emerald-700 transition text-center" data-i18n="navAdmin">لوحة الإدارة التجريبية</button>
+    </nav>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden fixed bottom-5 inset-x-4 sm:inset-x-auto sm:end-6 sm:w-96 bg-emerald-950 text-white px-4 py-3.5 rounded-2xl shadow-2xl border border-emerald-700 z-50 text-sm font-medium"></div>
+
+    <!-- SECTION: HOME -->
+    <section id="sec-home" class="space-y-6">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm">
+        <h2 data-i18n="welcomeTitle" class="text-xl sm:text-2xl font-extrabold text-emerald-950 mb-2">مرحباً بكم في منصة إنقاذ تعز</h2>
+        <p data-i18n="welcomeDesc" class="text-slate-600 text-sm sm:text-base mb-6">اختر القسم المناسب للتسجيل أو المعاينة في هذه النسخة المصممة لتنظيم العمل الإنساني وفق معايير الحوكمة والشفافية.</p>
+
+        <div class="grid sm:grid-cols-3 gap-4 mb-8">
+          <div onclick="switchTab('aid')" class="cursor-pointer group p-5 rounded-2xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-600 transition">
+            <div class="text-3xl font-black text-emerald-800 mb-2 group-hover:scale-105 transition-transform">01</div>
+            <p data-i18n="step1" class="font-bold text-slate-800 text-sm sm:text-base">تسجيل الأسر المتضررة وطلب المساعدة</p>
+          </div>
+          <div onclick="switchTab('donate')" class="cursor-pointer group p-5 rounded-2xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-600 transition">
+            <div class="text-3xl font-black text-emerald-800 mb-2 group-hover:scale-105 transition-transform">02</div>
+            <p data-i18n="step2" class="font-bold text-slate-800 text-sm sm:text-base">استقبال بيانات المتبرعين والمساهمات</p>
+          </div>
+          <div onclick="switchTab('medical')" class="cursor-pointer group p-5 rounded-2xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-600 transition">
+            <div class="text-3xl font-black text-emerald-800 mb-2 group-hover:scale-105 transition-transform">03</div>
+            <p data-i18n="step3" class="font-bold text-slate-800 text-sm sm:text-base">تنظيم طلبات الرعاية الطبية</p>
+          </div>
+        </div>
+
+        <h3 data-i18n="principlesTitle" class="text-lg sm:text-xl font-extrabold text-emerald-950 mb-4">مبادئ العمل</h3>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90">
+            <div data-i18n="p1Title" class="font-extrabold text-emerald-900 text-base mb-1">الاستقلالية</div>
+            <p data-i18n="p1Desc" class="text-slate-600 text-sm leading-relaxed">خدمة الناس دون تبعية حزبية أو تمييز.</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90">
+            <div data-i18n="p2Title" class="font-extrabold text-emerald-900 text-base mb-1">التحقق البشري</div>
+            <p data-i18n="p2Desc" class="text-slate-600 text-sm leading-relaxed">الذكاء الاصطناعي أداة مساعدة، والقرار النهائي لمراجع مختص.</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90">
+            <div data-i18n="p3Title" class="font-extrabold text-emerald-900 text-base mb-1">الشفافية</div>
+            <p data-i18n="p3Desc" class="text-slate-600 text-sm leading-relaxed">توثيق مصادر الأموال وقرارات الصرف والإيصالات.</p>
+          </div>
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90">
+            <div data-i18n="p4Title" class="font-extrabold text-emerald-900 text-base mb-1">حماية الخصوصية</div>
+            <p data-i18n="p4Desc" class="text-slate-600 text-sm leading-relaxed">عدم إظهار الهويات أو المعلومات الطبية للمتبرعين أو الجمهور.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: AID REQUEST -->
+    <section id="sec-aid" class="hidden">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm">
+        <h2 data-i18n="aidTitle" class="text-xl sm:text-2xl font-extrabold text-emerald-950 mb-1">تسجيل أسرة متضررة / طلب مساعدة</h2>
+        <p data-i18n="aidSub" class="text-slate-500 text-xs sm:text-sm mb-6">حقول توضيحية لتصميم سير التسجيل. لا تدخل بيانات أشخاص حقيقيين في هذه النسخة.</p>
+
+        <form id="aidForm" onsubmit="handleAidSubmit(event)" class="space-y-4">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblHeadName">اسم رب الأسرة</label>
+              <input type="text" id="aidName" required placeholder="الاسم الرباعي التجريبي" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 focus:border-emerald-700 outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblPhone">رقم هاتف للتواصل</label>
+              <input type="tel" id="aidPhone" required placeholder="رقم تجريبي" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 focus:border-emerald-700 outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblDistrict">المديرية / المنطقة</label>
+              <input type="text" id="aidDistrict" required placeholder="مثال: القاهرة، المظفر، صالة..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 focus:border-emerald-700 outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblMarital">الحالة الاجتماعية</label>
+              <select id="aidMarital" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-700 outline-none text-sm">
+                <option value="">اختر</option>
+                <option value="متزوج/ة">متزوج/ة</option>
+                <option value="أرمل/ة">أرمل/ة</option>
+                <option value="مطلق/ة">مطلق/ة</option>
+                <option value="أعزب (معيل)">أعزب (معيل لأسرة)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblJob">نوع العمل / مصدر الدخل</label>
+              <input type="text" id="aidJob" placeholder="عمل يومي، موظف، بلا عمل..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblFamilySize">عدد أفراد الأسرة</label>
+              <input type="number" id="aidSize" min="1" max="30" placeholder="مثال: 5" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblNeedType">نوع الاحتياج</label>
+              <select id="aidType" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-700 outline-none text-sm">
+                <option value="">اختر نوع المساعدة</option>
+                <option value="سلة غذائية">سلة غذائية</option>
+                <option value="دعم نقدي طارئ">دعم نقدي طارئ</option>
+                <option value="إيواء وإيجار">إيواء وإيجار</option>
+                <option value="مياه وصرف صحي">مياه وصرف صحي</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblUrgency">درجة الاستعجال</label>
+              <select id="aidUrgency" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-700 outline-none text-sm">
+                <option value="عادية">عادية</option>
+                <option value="متوسطة">متوسطة</option>
+                <option value="طارئة جداً">طارئة جداً</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblDesc">شرح مختصر للحالة والاحتياج</label>
+            <textarea id="aidDesc" rows="3" placeholder="اكتب وصفاً مختصراً دون معلومات طبية حساسة" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 outline-none text-sm"></textarea>
+          </div>
+
+          <label class="flex items-start gap-2.5 cursor-pointer pt-1">
+            <input type="checkbox" required class="mt-1 w-4 h-4 accent-emerald-800 rounded" />
+            <span class="text-xs sm:text-sm text-slate-700">أقر بأن البيانات المدخلة صحيحة، وأفهم أن التسجيل لا يعني الموافقة التلقائية على المساعدة.</span>
+          </label>
+
+          <div class="flex flex-wrap gap-3 pt-2">
+            <button type="submit" class="px-6 py-2.5 rounded-xl bg-emerald-900 hover:bg-emerald-800 text-white font-bold text-sm shadow transition">معاينة الطلب التجريبي</button>
+            <button type="reset" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition">مسح الحقول</button>
+          </div>
+        </form>
+
+        <div id="aidPreviewBox" class="hidden mt-5 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-950"></div>
+
+        <p class="mt-5 text-xs text-slate-500 leading-relaxed">
+          في النسخة الإنتاجية تُجمع وثائق الهوية وإثباتات الأسرة عبر قناة مشفرة ومحدودة الصلاحيات وبعد موافقة واضحة، ولا تُخزن في المتصفح.
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION: DONATE -->
+    <section id="sec-donate" class="hidden">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm">
+        <h2 class="text-xl sm:text-2xl font-extrabold text-emerald-950 mb-1">التبرع والمساهمة</h2>
+        <p class="text-slate-500 text-xs sm:text-sm mb-6">تسجيل اهتمام المتبرع فقط؛ لا توجد تحويلات أو حسابات مصرفية مفعّلة في النموذج.</p>
+
+        <form id="donateForm" onsubmit="handleDonateSubmit(event)" class="space-y-4">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1.5">نوع المساهمة</label>
+              <select id="donType" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-700 outline-none text-sm">
+                <option value="تبرع مالي">تبرع مالي</option>
+                <option value="مساهمة عينية (غذاء / دواء)">مساهمة عينية (غذاء / دواء)</option>
+                <option value="كفالة حالة طبية">كفالة حالة طبية</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1.5">الاسم</label>
+              <input type="text" id="donName" placeholder="اختياري إذا رغبت بالظهور" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1.5">طريقة الظهور</label>
+              <select id="donVisibility" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-700 outline-none text-sm">
+                <option value="إظهار الاسم بموافقتي">إظهار الاسم بموافقتي</option>
+                <option value="فاعل خير (مجهول الهوية)">فاعل خير (مجهول الهوية)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1.5">قيمة أو وصف المساهمة</label>
+              <input type="text" id="donAmount" required placeholder="مثال: مساهمة مقترحة أو وصف المواد" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 outline-none text-sm" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-1.5">بيانات التواصل (اختياري)</label>
+            <input type="text" id="donContact" placeholder="هاتف أو بريد إلكتروني" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 outline-none text-sm" />
+          </div>
+
+          <label class="flex items-start gap-2.5 cursor-pointer pt-1">
+            <input type="checkbox" required class="mt-1 w-4 h-4 accent-emerald-800 rounded" />
+            <span class="text-xs sm:text-sm text-slate-700">أوافق على استخدام بيانات التواصل للتنسيق بشأن المساهمة فقط.</span>
+          </label>
+
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-emerald-900 hover:bg-emerald-800 text-white font-bold text-sm shadow transition">حفظ معاينة المساهمة</button>
+        </form>
+
+        <div class="mt-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs sm:text-sm text-amber-950 leading-relaxed">
+          لا تُعلن أسماء المتبرعين أو مبالغهم إلا بموافقة صريحة. ويجب أن تتم التبرعات الفعلية عبر حساب مؤسسي معتمد وإيصال رسمي.
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: ORGANIZATION -->
+    <section id="sec-org" class="hidden">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm">
+        <h2 class="text-xl sm:text-2xl font-extrabold text-emerald-950 mb-1">تسجيل منظمة / جمعية / جهة مانحة</h2>
+        <p class="text-slate-500 text-xs sm:text-sm mb-6">نموذج أولي لطلب التواصل والتحقق من الجهة.</p>
+
+        <form id="orgForm" onsubmit="handleOrgSubmit(event)" class="space-y-4">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1.5">اسم المؤسسة</label>
+              <input type="text" id="orgName" required placeholder="اسم الجهة" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1.5">نوع الجهة</label>
+              <select id="orgType" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-700 outline-none text-sm">
+                <option value="منظمة دولية">منظمة دولية</option>
+                <option value="جمعية محلية معتمدة">جمعية محلية معتمدة</option>
+                <option value="مؤسسة خيرية / مانحة">مؤسسة خيرية / مانحة</option>
+                <option value="مبادرة مجتمعية">مبادرة مجتمعية</option>
+              </select>
+            </div>
+            <div>
+              <label class
