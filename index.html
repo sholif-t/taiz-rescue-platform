@@ -1,274 +1,1248 @@
+```html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>منصة إنقاذ تعز | Taiz Rescue Platform</title>
+  
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Cairo (Arabic) & Plus Jakarta Sans (English) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              950: '#042f24',
+              900: '#064e3b',
+              800: '#065f46',
+              700: '#047857',
+              600: '#059669',
+              100: '#d1fae5',
+              50: '#ecfdf5',
+            },
+            gold: {
+              600: '#d97706',
+              500: '#f59e0b',
+              400: '#fbbf24',
+              100: '#fef3c7',
+              50: '#fffbeb',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    body { font-family: 'Cairo', 'Inter', sans-serif; }
-    [dir="ltr"] body { font-family: 'Inter', 'Cairo', sans-serif; }
-    .tab-btn.active { background-color: #064e3b; color: #ffffff; border-color: #064e3b; box-shadow: 0 4px 12px rgba(6, 78, 59, 0.2); }
+    body {
+      font-family: 'Cairo', 'Plus Jakarta Sans', sans-serif;
+      background-color: #f4f7f6;
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html[dir="ltr"] body {
+      font-family: 'Plus Jakarta Sans', 'Cairo', sans-serif;
+    }
+    .hero-gradient {
+      background: linear-gradient(145deg, #042f24 0%, #064e3b 48%, #047857 100%);
+    }
+    .tab-transition {
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-view {
+      animation: fadeSlideUp 0.3s ease-out forwards;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased selection:bg-emerald-800 selection:text-white">
+<body class="min-h-screen flex flex-col antialiased selection:bg-brand-900 selection:text-white">
 
-  <!-- Header -->
-  <header class="bg-gradient-to-b from-emerald-950 via-emerald-900 to-emerald-800 text-white shadow-lg">
-    <div class="max-w-5xl mx-auto px-4 py-6 sm:py-8">
-      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md pointer-events-none flex flex-col gap-2"></div>
+
+  <!-- Preview Modal (For Instant Visual Preview of Submitted Forms) -->
+  <div id="preview-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden animate-view">
+      <div class="bg-brand-900 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="file-check-2" class="w-5 h-5 text-gold-400"></i>
+          <h3 id="modal-title" class="font-extrabold text-base">معاينة السجل التجريبي</h3>
+        </div>
+        <button onclick="closePreviewModal()" class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="modal-body" class="p-6 space-y-3 text-sm max-h-[70vh] overflow-y-auto">
+        <!-- Populated dynamically -->
+      </div>
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+        <button onclick="switchTab('admin'); closePreviewModal();" class="px-4 py-2.5 rounded-xl bg-brand-900 hover:bg-brand-800 text-white text-xs font-bold transition cursor-pointer" data-i18n="modal_go_admin">
+          عرض في لوحة الإدارة التجريبية
+        </button>
+        <button onclick="closePreviewModal()" class="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold transition cursor-pointer" data-i18n="modal_close">
+          إغلاق المعاينة
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. Hero Header Section -->
+  <header class="hero-gradient text-white relative overflow-hidden shadow-lg">
+    <div class="absolute -top-24 -left-24 w-72 h-72 rounded-full border border-white/10 pointer-events-none"></div>
+    <div class="absolute -bottom-28 -right-20 w-80 h-80 rounded-full bg-gold-400/10 blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-8 relative z-10">
+      <!-- Top Row: Emblem, Title, Language Switcher -->
+      <div class="flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3.5">
-          <div class="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shadow-inner">
-            <svg class="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V7l8-4z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/>
+          <!-- Custom Shield + Handshake SVG Emblem -->
+          <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-inner flex-shrink-0 p-2.5">
+            <svg class="w-8 h-8 text-gold-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" fill="rgba(251, 191, 36, 0.14)" stroke="#a7f3d0"/>
+              <path d="M8 12.5 10.5 15l5.5-5.5" stroke="#fbbf24" stroke-width="2.3"/>
             </svg>
           </div>
           <div>
-            <h1 data-i18n="title" class="text-2xl sm:text-3xl font-extrabold tracking-tight">منصة إنقاذ تعز</h1>
-            <p data-i18n="subtitle" class="text-emerald-200 text-sm sm:text-base font-medium">معاً لإنقاذ الإنسان، وبناء الأمل</p>
+            <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white" data-i18n="brand_name">منصة إنقاذ تعز</h1>
+            <p class="text-xs sm:text-sm text-emerald-100/90 font-semibold mt-0.5" data-i18n="brand_tagline">معاً لإنقاذ الإنسان، وبناء الأمل</p>
           </div>
         </div>
-        <button id="langToggle" onclick="toggleLanguage()" class="px-4 py-2 rounded-xl bg-white text-emerald-950 font-bold text-sm shadow hover:bg-amber-50 transition">
-          English
+
+        <button id="lang-toggle" onclick="toggleLanguage()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-brand-950 hover:bg-emerald-50 font-extrabold text-xs sm:text-sm shadow-md transition active:scale-95 cursor-pointer">
+          <i data-lucide="globe" class="w-4 h-4 text-brand-700"></i>
+          <span id="lang-btn-text">English</span>
         </button>
       </div>
 
-      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs sm:text-sm text-emerald-100 mb-4">
-        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-        <span data-i18n="demoBadge">نسخة تجريبية أولية • غير مخصصة للبيانات الحقيقية</span>
+      <!-- Prototype Status Pill -->
+      <div class="mt-4 flex flex-wrap items-center gap-2.5">
+        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-white/10 border border-white/20 text-emerald-50 backdrop-blur-sm">
+          <span class="w-2 h-2 rounded-full bg-gold-400 animate-pulse"></span>
+          <span data-i18n="proto_badge">نسخة تجريبية أولية • غير مخصصة للبيانات الحقيقية</span>
+        </span>
       </div>
 
-      <p data-i18n="heroDesc" class="text-emerald-50/95 text-sm sm:text-base leading-relaxed max-w-3xl">
+      <!-- Platform Mission Statement -->
+      <p class="mt-4 text-sm sm:text-base text-emerald-50/95 leading-relaxed max-w-3xl font-medium" data-i18n="hero_desc">
         منصة مستقلة لتنظيم طلبات المساعدة والتبرعات والرعاية الطبية، مع توثيق القرارات والعمليات وتعزيز الشفافية.
       </p>
     </div>
   </header>
 
-  <main class="max-w-5xl mx-auto px-4 py-6 space-y-6">
-    <!-- Security Banner -->
-    <div class="bg-amber-50 border border-amber-300/80 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-sm">
-      <svg class="w-6 h-6 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-      </svg>
-      <p data-i18n="securityNotice" class="text-xs sm:text-sm text-amber-950 leading-relaxed">
-        <strong>تنبيه أمان:</strong> هذه واجهة تجريبية تعمل داخل المتصفح فقط. لا ترفع هويات أو جوازات أو تقارير طبية حقيقية، ولا ترسل أموالاً عبرها. لا يوجد حالياً خادم آمن أو قاعدة بيانات أو تحقق رسمي أو بوابة دفع.
+  <!-- 2. Prominent Security Notice Banner -->
+  <div class="max-w-5xl mx-auto w-full px-4 sm:px-6 mt-5">
+    <div class="bg-amber-50 border border-amber-300/80 rounded-2xl p-4 shadow-sm flex items-start gap-3">
+      <div class="w-8 h-8 rounded-xl bg-amber-200/80 text-amber-900 flex items-center justify-center flex-shrink-0 mt-0.5">
+        <i data-lucide="shield-alert" class="w-4 h-4"></i>
+      </div>
+      <p class="text-xs sm:text-sm text-amber-950 leading-relaxed font-medium">
+        <strong class="font-extrabold" data-i18n="sec_prefix">تنبيه أمان:</strong>
+        <span data-i18n="sec_body">هذه واجهة تجريبية تعمل داخل المتصفح فقط. لا ترفع هويات أو جوازات أو تقارير طبية حقيقية، ولا ترسل أموالاً عبرها. لا يوجد حالياً خادم آمن أو قاعدة بيانات أو تحقق رسمي أو بوابة دفع.</span>
       </p>
     </div>
+  </div>
 
-    <!-- Navigation Tabs -->
-    <nav class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-      <button onclick="switchTab('home')" id="tab-home" class="tab-btn active px-3 py-3 rounded-xl bg-white border border-slate-200 font-bold text-xs sm:text-sm text-slate-700 hover:border-emerald-700 transition text-center" data-i18n="navHome">الرئيسية</button>
-      <button onclick="switchTab('aid')" id="tab-aid" class="tab-btn px-3 py-3 rounded-xl bg-white border border-slate-200 font-bold text-xs sm:text-sm text-slate-700 hover:border-emerald-700 transition text-center" data-i18n="navAid">طلب مساعدة</button>
-      <button onclick="switchTab('donate')" id="tab-donate" class="tab-btn px-3 py-3 rounded-xl bg-white border border-slate-200 font-bold text-xs sm:text-sm text-slate-700 hover:border-emerald-700 transition text-center" data-i18n="navDonate">متبرع / مساهم</button>
-      <button onclick="switchTab('org')" id="tab-org" class="tab-btn px-3 py-3 rounded-xl bg-white border border-slate-200 font-bold text-xs sm:text-sm text-slate-700 hover:border-emerald-700 transition text-center" data-i18n="navOrg">منظمة / جمعية</button>
-      <button onclick="switchTab('medical')" id="tab-medical" class="tab-btn px-3 py-3 rounded-xl bg-white border border-slate-200 font-bold text-xs sm:text-sm text-slate-700 hover:border-emerald-700 transition text-center" data-i18n="navMedical">الرعاية الطبية</button>
-      <button onclick="switchTab('admin')" id="tab-admin" class="tab-btn px-3 py-3 rounded-xl bg-white border border-slate-200 font-bold text-xs sm:text-sm text-slate-700 hover:border-emerald-700 transition text-center" data-i18n="navAdmin">لوحة الإدارة التجريبية</button>
-    </nav>
+  <!-- 3. Six-Tab Responsive Pill Navigation -->
+  <nav aria-label="Primary Navigation" class="max-w-5xl mx-auto w-full px-4 sm:px-6 mt-5">
+    <div class="bg-white rounded-2xl p-2 border border-slate-200/90 shadow-sm">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+        <button onclick="switchTab('home')" data-tab="home" class="nav-btn flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-extrabold tab-transition cursor-pointer">
+          <i data-lucide="home" class="w-4 h-4 flex-shrink-0"></i>
+          <span data-i18n="tab_home">الرئيسية</span>
+        </button>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="hidden fixed bottom-5 inset-x-4 sm:inset-x-auto sm:end-6 sm:w-96 bg-emerald-950 text-white px-4 py-3.5 rounded-2xl shadow-2xl border border-emerald-700 z-50 text-sm font-medium"></div>
+        <button onclick="switchTab('request')" data-tab="request" class="nav-btn flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-extrabold tab-transition cursor-pointer">
+          <i data-lucide="hand-helping" class="w-4 h-4 flex-shrink-0"></i>
+          <span data-i18n="tab_request">طلب مساعدة</span>
+        </button>
 
-    <!-- SECTION: HOME -->
-    <section id="sec-home" class="space-y-6">
-      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm">
-        <h2 data-i18n="welcomeTitle" class="text-xl sm:text-2xl font-extrabold text-emerald-950 mb-2">مرحباً بكم في منصة إنقاذ تعز</h2>
-        <p data-i18n="welcomeDesc" class="text-slate-600 text-sm sm:text-base mb-6">اختر القسم المناسب للتسجيل أو المعاينة في هذه النسخة المصممة لتنظيم العمل الإنساني وفق معايير الحوكمة والشفافية.</p>
+        <button onclick="switchTab('donate')" data-tab="donate" class="nav-btn flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-extrabold tab-transition cursor-pointer">
+          <i data-lucide="heart-handshake" class="w-4 h-4 flex-shrink-0"></i>
+          <span data-i18n="tab_donate">متبرع / مساهم</span>
+        </button>
 
-        <div class="grid sm:grid-cols-3 gap-4 mb-8">
-          <div onclick="switchTab('aid')" class="cursor-pointer group p-5 rounded-2xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-600 transition">
-            <div class="text-3xl font-black text-emerald-800 mb-2 group-hover:scale-105 transition-transform">01</div>
-            <p data-i18n="step1" class="font-bold text-slate-800 text-sm sm:text-base">تسجيل الأسر المتضررة وطلب المساعدة</p>
+        <button onclick="switchTab('ngo')" data-tab="ngo" class="nav-btn flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-extrabold tab-transition cursor-pointer">
+          <i data-lucide="building-2" class="w-4 h-4 flex-shrink-0"></i>
+          <span data-i18n="tab_ngo">منظمة / جمعية</span>
+        </button>
+
+        <button onclick="switchTab('medical')" data-tab="medical" class="nav-btn flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-extrabold tab-transition cursor-pointer">
+          <i data-lucide="stethoscope" class="w-4 h-4 flex-shrink-0"></i>
+          <span data-i18n="tab_medical">الرعاية الطبية</span>
+        </button>
+
+        <button onclick="switchTab('admin')" data-tab="admin" class="nav-btn flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-extrabold tab-transition cursor-pointer relative">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0"></i>
+          <span data-i18n="tab_admin">لوحة الإدارة التجريبية</span>
+          <span id="nav-total-badge" class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-black rounded-full bg-gold-500 text-brand-950">0</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 4. Main Content Area -->
+  <main class="flex-grow max-w-5xl mx-auto w-full px-4 sm:px-6 py-6">
+
+    <!-- ==================== TAB 1: HOME (الرئيسية) ==================== -->
+    <section id="view-home" class="tab-view space-y-7 animate-view">
+      
+      <!-- Welcome Card -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm space-y-3">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 text-brand-800 text-xs font-bold border border-brand-100">
+          <i data-lucide="compass" class="w-3.5 h-3.5"></i>
+          <span data-i18n="home_badge">بوابة العمل الإنساني والرقابي</span>
+        </span>
+        <h2 class="text-2xl sm:text-3xl font-black text-brand-950" data-i18n="home_welcome_title">مرحباً بكم في منصة إنقاذ تعز</h2>
+        <p class="text-sm sm:text-base text-slate-600 leading-relaxed" data-i18n="home_welcome_desc">
+          اختر القسم المناسب للتسجيل في هذه النسخة العرضية. صُممت المنصة لتنظيم الاستجابة الإنسانية والطبية في تعز وفق معايير الحوكمة الدولية والشفافية المطلقة.
+        </p>
+      </div>
+
+      <!-- 3-Step Workflow Cards (01, 02, 03) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div onclick="switchTab('request')" class="group bg-white rounded-3xl p-6 border border-slate-200/90 hover:border-brand-700/60 shadow-sm hover:shadow-md transition cursor-pointer">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-11 h-11 rounded-2xl bg-brand-50 text-brand-800 flex items-center justify-center group-hover:bg-brand-900 group-hover:text-white transition">
+              <i data-lucide="users" class="w-5 h-5"></i>
+            </div>
+            <span class="text-3xl font-black text-brand-900/20 group-hover:text-brand-800/40 transition">01</span>
           </div>
-          <div onclick="switchTab('donate')" class="cursor-pointer group p-5 rounded-2xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-600 transition">
-            <div class="text-3xl font-black text-emerald-800 mb-2 group-hover:scale-105 transition-transform">02</div>
-            <p data-i18n="step2" class="font-bold text-slate-800 text-sm sm:text-base">استقبال بيانات المتبرعين والمساهمات</p>
-          </div>
-          <div onclick="switchTab('medical')" class="cursor-pointer group p-5 rounded-2xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-600 transition">
-            <div class="text-3xl font-black text-emerald-800 mb-2 group-hover:scale-105 transition-transform">03</div>
-            <p data-i18n="step3" class="font-bold text-slate-800 text-sm sm:text-base">تنظيم طلبات الرعاية الطبية</p>
-          </div>
+          <h3 class="text-base sm:text-lg font-extrabold text-slate-900" data-i18n="step_01">تسجيل الأسر المتضررة وطلب المساعدة</h3>
         </div>
 
-        <h3 data-i18n="principlesTitle" class="text-lg sm:text-xl font-extrabold text-emerald-950 mb-4">مبادئ العمل</h3>
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90">
-            <div data-i18n="p1Title" class="font-extrabold text-emerald-900 text-base mb-1">الاستقلالية</div>
-            <p data-i18n="p1Desc" class="text-slate-600 text-sm leading-relaxed">خدمة الناس دون تبعية حزبية أو تمييز.</p>
+        <div onclick="switchTab('donate')" class="group bg-white rounded-3xl p-6 border border-slate-200/90 hover:border-gold-500/70 shadow-sm hover:shadow-md transition cursor-pointer">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition">
+              <i data-lucide="hand-coins" class="w-5 h-5"></i>
+            </div>
+            <span class="text-3xl font-black text-amber-600/20 group-hover:text-amber-600/40 transition">02</span>
           </div>
-          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90">
-            <div data-i18n="p2Title" class="font-extrabold text-emerald-900 text-base mb-1">التحقق البشري</div>
-            <p data-i18n="p2Desc" class="text-slate-600 text-sm leading-relaxed">الذكاء الاصطناعي أداة مساعدة، والقرار النهائي لمراجع مختص.</p>
+          <h3 class="text-base sm:text-lg font-extrabold text-slate-900" data-i18n="step_02">استقبال بيانات المتبرعين والمساهمات</h3>
+        </div>
+
+        <div onclick="switchTab('medical')" class="group bg-white rounded-3xl p-6 border border-slate-200/90 hover:border-teal-600/60 shadow-sm hover:shadow-md transition cursor-pointer">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-11 h-11 rounded-2xl bg-teal-50 text-teal-800 flex items-center justify-center group-hover:bg-teal-700 group-hover:text-white transition">
+              <i data-lucide="heart-pulse" class="w-5 h-5"></i>
+            </div>
+            <span class="text-3xl font-black text-teal-800/20 group-hover:text-teal-800/40 transition">03</span>
           </div>
-          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90">
-            <div data-i18n="p3Title" class="font-extrabold text-emerald-900 text-base mb-1">الشفافية</div>
-            <p data-i18n="p3Desc" class="text-slate-600 text-sm leading-relaxed">توثيق مصادر الأموال وقرارات الصرف والإيصالات.</p>
+          <h3 class="text-base sm:text-lg font-extrabold text-slate-900" data-i18n="step_03">تنظيم طلبات الرعاية الطبية</h3>
+        </div>
+      </div>
+
+      <!-- 4 Governance Principles Cards (Clean spacing, zero overlap) -->
+      <div class="space-y-4">
+        <h3 class="text-xl font-black text-brand-950 px-1" data-i18n="principles_heading">مبادئ العمل</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-brand-800 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i data-lucide="scale" class="w-5 h-5"></i>
+            </div>
+            <div class="space-y-1">
+              <h4 class="font-extrabold text-base text-brand-950" data-i18n="prin_1_title">الاستقلالية</h4>
+              <p class="text-sm text-slate-600 leading-relaxed" data-i18n="prin_1_desc">خدمة الناس دون تبعية حزبية أو تمييز.</p>
+            </div>
           </div>
-          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90">
-            <div data-i18n="p4Title" class="font-extrabold text-emerald-900 text-base mb-1">حماية الخصوصية</div>
-            <p data-i18n="p4Desc" class="text-slate-600 text-sm leading-relaxed">عدم إظهار الهويات أو المعلومات الطبية للمتبرعين أو الجمهور.</p>
+
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i data-lucide="user-check" class="w-5 h-5"></i>
+            </div>
+            <div class="space-y-1">
+              <h4 class="font-extrabold text-base text-brand-950" data-i18n="prin_2_title">التحقق البشري</h4>
+              <p class="text-sm text-slate-600 leading-relaxed" data-i18n="prin_2_desc">الذكاء الاصطناعي أداة مساعدة، والقرار النهائي لمراجع مختص.</p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+            </div>
+            <div class="space-y-1">
+              <h4 class="font-extrabold text-base text-brand-950" data-i18n="prin_3_title">الشفافية</h4>
+              <p class="text-sm text-slate-600 leading-relaxed" data-i18n="prin_3_desc">توثيق مصادر الأموال وقرارات الصرف والإيصالات.</p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i data-lucide="shield-lock" class="w-5 h-5"></i>
+            </div>
+            <div class="space-y-1">
+              <h4 class="font-extrabold text-base text-brand-950" data-i18n="prin_4_title">حماية الخصوصية</h4>
+              <p class="text-sm text-slate-600 leading-relaxed" data-i18n="prin_4_desc">عدم إظهار الهويات أو المعلومات الطبية للمتبرعين أو الجمهور.</p>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- SECTION: AID REQUEST -->
-    <section id="sec-aid" class="hidden">
-      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm">
-        <h2 data-i18n="aidTitle" class="text-xl sm:text-2xl font-extrabold text-emerald-950 mb-1">تسجيل أسرة متضررة / طلب مساعدة</h2>
-        <p data-i18n="aidSub" class="text-slate-500 text-xs sm:text-sm mb-6">حقول توضيحية لتصميم سير التسجيل. لا تدخل بيانات أشخاص حقيقيين في هذه النسخة.</p>
+    <!-- ==================== TAB 2: REQUEST ASSISTANCE (طلب مساعدة) ==================== -->
+    <section id="view-request" class="tab-view hidden animate-view">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm max-w-3xl mx-auto">
+        <div class="pb-5 mb-6 border-b border-slate-100">
+          <h2 class="text-xl sm:text-2xl font-black text-brand-950" data-i18n="req_title">تسجيل أسرة متضررة / طلب مساعدة</h2>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1" data-i18n="req_subtitle">حقول توضيحية لتصميم سير التسجيل. لا تدخل بيانات أشخاص حقيقيين في هذه النسخة.</p>
+        </div>
 
-        <form id="aidForm" onsubmit="handleAidSubmit(event)" class="space-y-4">
-          <div class="grid sm:grid-cols-2 gap-4">
+        <form id="form-request" onsubmit="submitAidRequest(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblHeadName">اسم رب الأسرة</label>
-              <input type="text" id="aidName" required placeholder="الاسم الرباعي التجريبي" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 focus:border-emerald-700 outline-none text-sm" />
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="req_f_name">اسم رب الأسرة</label>
+              <input type="text" id="req-head-name" required placeholder="الاسم الرباعي التجريبي" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 focus:ring-2 focus:ring-brand-700/20 outline-none text-sm transition" />
             </div>
+
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblPhone">رقم هاتف للتواصل</label>
-              <input type="tel" id="aidPhone" required placeholder="رقم تجريبي" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 focus:border-emerald-700 outline-none text-sm" />
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="req_f_phone">رقم هاتف للتواصل</label>
+              <input type="tel" id="req-phone" required placeholder="رقم تجريبي" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 focus:ring-2 focus:ring-brand-700/20 outline-none text-sm transition" />
             </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblDistrict">المديرية / المنطقة</label>
-              <input type="text" id="aidDistrict" required placeholder="مثال: القاهرة، المظفر، صالة..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 focus:border-emerald-700 outline-none text-sm" />
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="req_f_district">المديرية / المنطقة</label>
+              <input type="text" id="req-district" required placeholder="مثال: القاهرة، المظفر، صالة..." class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 focus:ring-2 focus:ring-brand-700/20 outline-none text-sm transition" />
             </div>
+
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblMarital">الحالة الاجتماعية</label>
-              <select id="aidMarital" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-700 outline-none text-sm">
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="req_f_marital">الحالة الاجتماعية</label>
+              <select id="req-marital" required class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 focus:ring-2 focus:ring-brand-700/20 outline-none text-sm bg-white transition">
                 <option value="">اختر</option>
-                <option value="متزوج/ة">متزوج/ة</option>
-                <option value="أرمل/ة">أرمل/ة</option>
-                <option value="مطلق/ة">مطلق/ة</option>
-                <option value="أعزب (معيل)">أعزب (معيل لأسرة)</option>
+                <option value="متزوج / معيل أسرة">متزوج / معيل أسرة</option>
+                <option value="أرمل / أرملة">أرمل / أرملة</option>
+                <option value="مطلق / مطلقة">مطلق / مطلقة</option>
+                <option value="أعزب">أعزب</option>
               </select>
             </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblJob">نوع العمل / مصدر الدخل</label>
-              <input type="text" id="aidJob" placeholder="عمل يومي، موظف، بلا عمل..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 outline-none text-sm" />
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="req_f_income">نوع العمل / مصدر الدخل</label>
+              <input type="text" id="req-income" required placeholder="عمل يومي، موظف، بلا عمل..." class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 focus:ring-2 focus:ring-brand-700/20 outline-none text-sm transition" />
             </div>
+
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblFamilySize">عدد أفراد الأسرة</label>
-              <input type="number" id="aidSize" min="1" max="30" placeholder="مثال: 5" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 outline-none text-sm" />
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="req_f_members">عدد أفراد الأسرة</label>
+              <input type="number" id="req-members" min="1" max="30" required placeholder="مثال: 5" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 focus:ring-2 focus:ring-brand-700/20 outline-none text-sm transition" />
             </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblNeedType">نوع الاحتياج</label>
-              <select id="aidType" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-700 outline-none text-sm">
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="req_f_need">نوع الاحتياج</label>
+              <select id="req-need-type" required class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 focus:ring-2 focus:ring-brand-700/20 outline-none text-sm bg-white transition">
                 <option value="">اختر نوع المساعدة</option>
                 <option value="سلة غذائية">سلة غذائية</option>
                 <option value="دعم نقدي طارئ">دعم نقدي طارئ</option>
-                <option value="إيواء وإيجار">إيواء وإيجار</option>
-                <option value="مياه وصرف صحي">مياه وصرف صحي</option>
+                <option value="مأوى وإيجار">مأوى وإيجار</option>
+                <option value="رعاية طبية وأدوية">رعاية طبية وأدوية</option>
+                <option value="مياه وإصحاح بيئي">مياه وإصحاح بيئي</option>
               </select>
             </div>
+
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblUrgency">درجة الاستعجال</label>
-              <select id="aidUrgency" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-700 outline-none text-sm">
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="req_f_urgency">درجة الاستعجال</label>
+              <select id="req-urgency" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 focus:ring-2 focus:ring-brand-700/20 outline-none text-sm bg-white transition">
                 <option value="عادية">عادية</option>
                 <option value="متوسطة">متوسطة</option>
-                <option value="طارئة جداً">طارئة جداً</option>
+                <option value="عاجلة جداً">عاجلة جداً</option>
               </select>
             </div>
           </div>
 
           <div>
-            <label class="block text-sm font-bold text-slate-700 mb-1.5" data-i18n="lblDesc">شرح مختصر للحالة والاحتياج</label>
-            <textarea id="aidDesc" rows="3" placeholder="اكتب وصفاً مختصراً دون معلومات طبية حساسة" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 outline-none text-sm"></textarea>
+            <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="req_f_desc">شرح مختصر للحالة والاحتياج</label>
+            <textarea id="req-summary" rows="3" required placeholder="اكتب وصفاً مختصراً دون معلومات طبية حساسة" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 focus:ring-2 focus:ring-brand-700/20 outline-none text-sm transition"></textarea>
           </div>
 
-          <label class="flex items-start gap-2.5 cursor-pointer pt-1">
-            <input type="checkbox" required class="mt-1 w-4 h-4 accent-emerald-800 rounded" />
-            <span class="text-xs sm:text-sm text-slate-700">أقر بأن البيانات المدخلة صحيحة، وأفهم أن التسجيل لا يعني الموافقة التلقائية على المساعدة.</span>
+          <label class="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+            <input type="checkbox" id="req-confirm" required class="mt-1 w-4 h-4 accent-brand-900 rounded" />
+            <span class="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed" data-i18n="req_f_ack">
+              أقر بأن البيانات المدخلة صحيحة، وأفهم أن التسجيل لا يعني الموافقة التلقائية على المساعدة.
+            </span>
           </label>
 
-          <div class="flex flex-wrap gap-3 pt-2">
-            <button type="submit" class="px-6 py-2.5 rounded-xl bg-emerald-900 hover:bg-emerald-800 text-white font-bold text-sm shadow transition">معاينة الطلب التجريبي</button>
-            <button type="reset" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition">مسح الحقول</button>
+          <div class="flex flex-wrap items-center gap-3 pt-2">
+            <button type="submit" class="px-6 py-3.5 rounded-xl bg-brand-900 hover:bg-brand-800 text-white font-extrabold text-sm shadow-sm transition cursor-pointer" data-i18n="req_btn_preview">
+              معاينة الطلب التجريبي
+            </button>
+            <button type="button" onclick="resetForm('form-request')" class="px-5 py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition cursor-pointer" data-i18n="req_btn_clear">
+              مسح الحقول
+            </button>
           </div>
+
+          <p class="text-xs text-slate-500 leading-relaxed pt-2 border-t border-slate-100" data-i18n="req_footnote">
+            في النسخة الإنتاجية تُجمع وثائق الهوية وإثباتات الأسرة عبر قناة مشفرة ومحدودة الصلاحيات وبعد موافقة واضحة، ولا تُخزن في المتصفح.
+          </p>
         </form>
-
-        <div id="aidPreviewBox" class="hidden mt-5 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-950"></div>
-
-        <p class="mt-5 text-xs text-slate-500 leading-relaxed">
-          في النسخة الإنتاجية تُجمع وثائق الهوية وإثباتات الأسرة عبر قناة مشفرة ومحدودة الصلاحيات وبعد موافقة واضحة، ولا تُخزن في المتصفح.
-        </p>
       </div>
     </section>
 
-    <!-- SECTION: DONATE -->
-    <section id="sec-donate" class="hidden">
-      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm">
-        <h2 class="text-xl sm:text-2xl font-extrabold text-emerald-950 mb-1">التبرع والمساهمة</h2>
-        <p class="text-slate-500 text-xs sm:text-sm mb-6">تسجيل اهتمام المتبرع فقط؛ لا توجد تحويلات أو حسابات مصرفية مفعّلة في النموذج.</p>
+    <!-- ==================== TAB 3: DONOR / CONTRIBUTOR (متبرع / مساهم) ==================== -->
+    <section id="view-donate" class="tab-view hidden animate-view">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm max-w-3xl mx-auto space-y-6">
+        <div class="pb-4 border-b border-slate-100">
+          <h2 class="text-xl sm:text-2xl font-black text-brand-950" data-i18n="don_title">التبرع والمساهمة</h2>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1" data-i18n="don_subtitle">تسجيل اهتمام المتبرع فقط؛ لا توجد تحويلات أو حسابات مصرفية مفعّلة في النموذج.</p>
+        </div>
 
-        <form id="donateForm" onsubmit="handleDonateSubmit(event)" class="space-y-4">
-          <div class="grid sm:grid-cols-2 gap-4">
+        <form id="form-donate" onsubmit="submitDonationPreview(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-1.5">نوع المساهمة</label>
-              <select id="donType" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-700 outline-none text-sm">
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="don_f_type">نوع المساهمة</label>
+              <select id="don-type" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 outline-none text-sm bg-white">
                 <option value="تبرع مالي">تبرع مالي</option>
-                <option value="مساهمة عينية (غذاء / دواء)">مساهمة عينية (غذاء / دواء)</option>
-                <option value="كفالة حالة طبية">كفالة حالة طبية</option>
+                <option value="تبرع عيني / مواد غذائية">تبرع عيني / مواد غذائية</option>
+                <option value="مستلزمات طبية وأدوية">مستلزمات طبية وأدوية</option>
+                <option value="خدمات لوجستية ونقل">خدمات لوجستية ونقل</option>
               </select>
             </div>
+
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-1.5">الاسم</label>
-              <input type="text" id="donName" placeholder="اختياري إذا رغبت بالظهور" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 outline-none text-sm" />
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="don_f_name">الاسم</label>
+              <input type="text" id="don-name" placeholder="اختياري إذا رغبت بالظهور" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 outline-none text-sm" />
             </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-1.5">طريقة الظهور</label>
-              <select id="donVisibility" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-700 outline-none text-sm">
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="don_f_visibility">طريقة الظهور</label>
+              <select id="don-visibility" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 outline-none text-sm bg-white">
                 <option value="إظهار الاسم بموافقتي">إظهار الاسم بموافقتي</option>
-                <option value="فاعل خير (مجهول الهوية)">فاعل خير (مجهول الهوية)</option>
+                <option value="فاعل خير (عدم إظهار الاسم)">فاعل خير (عدم إظهار الاسم)</option>
               </select>
             </div>
+
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-1.5">قيمة أو وصف المساهمة</label>
-              <input type="text" id="donAmount" required placeholder="مثال: مساهمة مقترحة أو وصف المواد" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 outline-none text-sm" />
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="don_f_contact">بيانات التواصل (اختياري)</label>
+              <input type="text" id="don-contact" placeholder="هاتف أو بريد إلكتروني" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 outline-none text-sm" />
             </div>
           </div>
 
           <div>
-            <label class="block text-sm font-bold text-slate-700 mb-1.5">بيانات التواصل (اختياري)</label>
-            <input type="text" id="donContact" placeholder="هاتف أو بريد إلكتروني" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 outline-none text-sm" />
+            <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="don_f_value">قيمة أو وصف المساهمة</label>
+            <input type="text" id="don-value" required placeholder="مثال: مساهمة مقترحة أو وصف المواد" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 outline-none text-sm" />
           </div>
 
-          <label class="flex items-start gap-2.5 cursor-pointer pt-1">
-            <input type="checkbox" required class="mt-1 w-4 h-4 accent-emerald-800 rounded" />
-            <span class="text-xs sm:text-sm text-slate-700">أوافق على استخدام بيانات التواصل للتنسيق بشأن المساهمة فقط.</span>
+          <label class="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+            <input type="checkbox" id="don-consent" class="mt-1 w-4 h-4 accent-brand-900 rounded" />
+            <span class="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed" data-i18n="don_f_consent">
+              أوافق على استخدام بيانات التواصل للتنسيق بشأن المساهمة فقط.
+            </span>
           </label>
 
-          <button type="submit" class="px-6 py-2.5 rounded-xl bg-emerald-900 hover:bg-emerald-800 text-white font-bold text-sm shadow transition">حفظ معاينة المساهمة</button>
+          <div class="pt-1">
+            <button type="submit" class="px-6 py-3.5 rounded-xl bg-brand-900 hover:bg-brand-800 text-white font-extrabold text-sm shadow-sm transition cursor-pointer" data-i18n="don_btn_save">
+              حفظ معاينة المساهمة
+            </button>
+          </div>
         </form>
 
-        <div class="mt-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs sm:text-sm text-amber-950 leading-relaxed">
+        <!-- Institutional Compliance Notice -->
+        <div class="bg-amber-50 border border-amber-300/80 rounded-2xl p-4 text-xs sm:text-sm text-amber-950 leading-relaxed font-medium" data-i18n="don_notice">
           لا تُعلن أسماء المتبرعين أو مبالغهم إلا بموافقة صريحة. ويجب أن تتم التبرعات الفعلية عبر حساب مؤسسي معتمد وإيصال رسمي.
         </div>
       </div>
     </section>
 
-    <!-- SECTION: ORGANIZATION -->
-    <section id="sec-org" class="hidden">
-      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm">
-        <h2 class="text-xl sm:text-2xl font-extrabold text-emerald-950 mb-1">تسجيل منظمة / جمعية / جهة مانحة</h2>
-        <p class="text-slate-500 text-xs sm:text-sm mb-6">نموذج أولي لطلب التواصل والتحقق من الجهة.</p>
+    <!-- ==================== TAB 4: ORGANIZATION / NGO (منظمة / جمعية) ==================== -->
+    <section id="view-ngo" class="tab-view hidden animate-view">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm max-w-3xl mx-auto space-y-6">
+        <div class="pb-4 border-b border-slate-100">
+          <h2 class="text-xl sm:text-2xl font-black text-brand-950" data-i18n="ngo_title">تسجيل منظمة / جمعية / جهة مانحة</h2>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1" data-i18n="ngo_subtitle">نموذج أولي لطلب التواصل والتحقق من الجهة.</p>
+        </div>
 
-        <form id="orgForm" onsubmit="handleOrgSubmit(event)" class="space-y-4">
-          <div class="grid sm:grid-cols-2 gap-4">
+        <form id="form-ngo" onsubmit="submitNgoRequest(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-1.5">اسم المؤسسة</label>
-              <input type="text" id="orgName" required placeholder="اسم الجهة" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-700 outline-none text-sm" />
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="ngo_f_org">اسم المؤسسة</label>
+              <input type="text" id="ngo-org-name" required placeholder="اسم الجهة" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 outline-none text-sm" />
             </div>
+
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-1.5">نوع الجهة</label>
-              <select id="orgType" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-white focus:ring-2 focus:ring-emerald-700 outline-none text-sm">
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="ngo_f_type">نوع الجهة</label>
+              <select id="ngo-org-type" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 outline-none text-sm bg-white">
                 <option value="منظمة دولية">منظمة دولية</option>
-                <option value="جمعية محلية معتمدة">جمعية محلية معتمدة</option>
-                <option value="مؤسسة خيرية / مانحة">مؤسسة خيرية / مانحة</option>
+                <option value="جمعية محلية">جمعية محلية</option>
+                <option value="جهة مانحة">جهة مانحة</option>
                 <option value="مبادرة مجتمعية">مبادرة مجتمعية</option>
               </select>
             </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="ngo_f_person">اسم مسؤول التواصل</label>
+              <input type="text" id="ngo-contact-person" required placeholder="الاسم الكامل للمنسق" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 outline-none text-sm" />
+            </div>
+
+            <div>
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="ngo_f_email">البريد الإلكتروني الرسمي</label>
+              <input type="email" id="ngo-email" required placeholder="name@organization.org" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 outline-none text-sm" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="ngo_f_areas">مجالات التعاون</label>
+            <textarea id="ngo-areas" rows="3" required placeholder="تمويل غذاء، صحة، مياه، دعم نقدي..." class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 outline-none text-sm"></textarea>
+          </div>
+
+          <div class="pt-1">
+            <button type="submit" class="px-6 py-3.5 rounded-xl bg-brand-900 hover:bg-brand-800 text-white font-extrabold text-sm shadow-sm transition cursor-pointer" data-i18n="ngo_btn_send">
+              إرسال طلب تواصل تجريبي
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 5: MEDICAL CARE (الرعاية الطبية) ==================== -->
+    <section id="view-medical" class="tab-view hidden animate-view">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm max-w-3xl mx-auto space-y-6">
+        <div class="pb-4 border-b border-slate-100">
+          <h2 class="text-xl sm:text-2xl font-black text-brand-950" data-i18n="med_title">قسم الرعاية الطبية</h2>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1" data-i18n="med_subtitle">مسار إحالة ومراجعة للحالات الطبية عبر المستشفى والطبيب المختص.</p>
+        </div>
+
+        <form id="form-medical" onsubmit="submitMedicalReferral(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="med_f_code">رمز ملف المريض (تجريبي)</label>
+              <input type="text" id="med-patient-code" value="MED-DEMO-001" required class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 outline-none text-sm font-mono font-bold bg-slate-50" />
+            </div>
+
+            <div>
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="med_f_source">جهة الإحالة</label>
+              <input type="text" id="med-source" required placeholder="اسم المستشفى / المندوب" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 outline-none text-sm" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="med_f_service">نوع الخدمة المطلوبة</label>
+              <select id="med-service" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 outline-none text-sm bg-white">
+                <option value="فحوصات وتشخيص">فحوصات وتشخيص</option>
+                <option value="تدخل جراحي / عملية">تدخل جراحي / عملية</option>
+                <option value="أدوية وعلاج مزمن">أدوية وعلاج مزمن</option>
+                <option value="رعاية أمومة وطفولة">رعاية أمومة وطفولة</option>
+                <option value="حالة طوارئ">حالة طوارئ</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="med_f_urgency">درجة الاستعجال الطبي</label>
+              <select id="med-urgency" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 outline-none text-sm bg-white">
+                <option value="حسب تقييم الطبيب">حسب تقييم الطبيب</option>
+                <option value="طارئ (خلال 24 ساعة)">طارئ (خلال 24 ساعة)</option>
+                <option value="عاجل">عاجل</option>
+                <option value="روتينى / مجدول">روتينى / مجدول</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5" data-i18n="med_f_summary">ملخص الإحالة غير التشخيصي</label>
+            <textarea id="med-summary" rows="3" required placeholder="لا تكتب تفاصيل طبية أو أسماء حقيقية هنا. يرفق التقرير عبر نظام طبي آمن في النسخة النهائية." class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-brand-700 outline-none text-sm"></textarea>
+          </div>
+
+          <label class="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+            <input type="checkbox" id="med-consent" required class="mt-1 w-4 h-4 accent-brand-900 rounded" />
+            <span class="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed" data-i18n="med_f_consent">
+              تم الحصول على موافقة المريض أو وليه على معالجة بياناته الصحية ومشاركتها مع الفريق الطبي المخول.
+            </span>
+          </label>
+
+          <div class="pt-1">
+            <button type="submit" class="px-6 py-3.5 rounded-xl bg-brand-900 hover:bg-brand-800 text-white font-extrabold text-sm shadow-sm transition cursor-pointer" data-i18n="med_btn_create">
+              إنشاء إحالة تجريبية
+            </button>
+          </div>
+        </form>
+
+        <!-- Medical Governance Warning -->
+        <div class="bg-amber-50 border border-amber-300/80 rounded-2xl p-4 text-xs sm:text-sm text-amber-950 leading-relaxed font-medium" data-i18n="med_notice">
+          لا يجوز أن يقرر التطبيق التشخيص أو العلاج أو أحقية العملية. الطبيب المرخص يقرر العلاج، وتراجع جهة مستقلة الفواتير والتكاليف. لا تُشارك الملفات الطبية مع المتبرعين أو الجمهور.
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 6: DEMO ADMIN DASHBOARD (لوحة الإدارة التجريبية) ==================== -->
+    <section id="view-admin" class="tab-view hidden animate-view space-y-7">
+      
+      <!-- Top Admin Header + Live Session Counters -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-black text-brand-950" data-i18n="adm_title">لوحة الإدارة التجريبية</h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1" data-i18n="adm_subtitle">بيانات توضيحية فقط وليست سجلات حقيقية. لا يوجد تسجيل دخول أو صلاحيات فعلية في هذه النسخة.</p>
+          </div>
+          <button onclick="populateSampleSessionData()" class="px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-brand-900 border border-emerald-200 text-xs font-extrabold transition self-start sm:self-auto cursor-pointer" data-i18n="adm_btn_populate">
+            + محاكاة بيانات جلسة
+          </button>
+        </div>
+
+        <!-- 3 Live Session Counters -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 flex items-center justify-between">
+            <div>
+              <p class="text-xs sm:text-sm font-bold text-slate-600" data-i18n="cnt_aid_lbl">معاينات طلبات المساعدة في هذه الجلسة</p>
+            </div>
+            <div id="count-aid" class="text-3xl font-black text-brand-950">0</div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 flex items-center justify-between">
+            <div>
+              <p class="text-xs sm:text-sm font-bold text-slate-600" data-i18n="cnt_don_lbl">معاينات مساهمات في هذه الجلسة</p>
+            </div>
+            <div id="count-don" class="text-3xl font-black text-brand-950">0</div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 flex items-center justify-between">
+            <div>
+              <p class="text-xs sm:text-sm font-bold text-slate-600" data-i18n="cnt_med_lbl">إحالات طبية تجريبية في هذه الجلسة</p>
+            </div>
+            <div id="count-med" class="text-3xl font-black text-brand-950">0</div>
+          </div>
+        </div>
+
+        <!-- Live Session Activity Feed -->
+        <div id="session-log-wrapper" class="hidden space-y-3 pt-2">
+          <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
+            <i data-lucide="activity" class="w-4 h-4 text-brand-700"></i>
+            <span data-i18n="adm_log_title">سجل المعاينات المنشأة في الجلسة الحالية</span>
+          </h3>
+          <div id="session-log-list" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- 6-Stage Request Approval Workflow Table (سير اعتماد الطلب المقترح) -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm space-y-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-brand-900 text-gold-400 flex items-center justify-center">
+            <i data-lucide="git-pull-request" class="w-4 h-4"></i>
+          </div>
+          <h3 class="text-lg sm:text-xl font-black text-brand-950" data-i18n="wf_heading">سير اعتماد الطلب المقترح</h3>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border border-slate-200">
+          <table class="w-full text-right border-collapse">
+            <thead class="bg-slate-50 border-b border-slate-200">
+              <tr class="text-xs sm:text-sm font-extrabold text-slate-700">
+                <th class="py-3.5 px-4" data-i18n="wf_col_stage">المرحلة</th>
+                <th class="py-3.5 px-4" data-i18n="wf_col_owner">المسؤول</th>
+                <th class="py-3.5 px-4" data-i18n="wf_col_action">الإجراء</th>
+              </tr>
+            </thead>
+            <tbody id="workflow-tbody" class="divide-y divide-slate-100 text-xs sm:text-sm">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Proposed Financial Controls (ضوابط مالية مقترحة) -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm space-y-5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+            <i data-lucide="landmark" class="w-4 h-4"></i>
+          </div>
+          <h3 class="text-lg sm:text-xl font-black text-brand-950" data-i18n="fin_heading">ضوابط مالية مقترحة</h3>
+        </div>
+
+        <ul id="financial-controls-list" class="space-y-3 text-sm text-slate-700">
+          <!-- Populated by JS -->
+        </ul>
+
+        <div class="pt-3 border-t border-slate-100 flex justify-end">
+          <button onclick="resetSessionNumbers()" class="px-5 py-3 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-800 hover:border-rose-200 border border-slate-200 text-slate-800 font-extrabold text-xs sm:text-sm transition cursor-pointer flex items-center gap-2">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            <span data-i18n="btn_reset_session">إعادة ضبط أرقام هذه الجلسة</span>
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- 5. Clean Institutional Disclaimer Footer -->
+  <footer class="bg-white border-t border-slate-200/90 mt-auto">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-6 text-center">
+      <p class="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed" data-i18n="footer_disclaimer">
+        منصة إنقاذ تعز – نموذج واجهة أولي قابل للتطوير، لا يمثل جهة مسجلة ولا يطلب تبرعات فعلية.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Interactive Application Logic & Bilingual Dictionary -->
+  <script>
+    // ==================== SESSION STATE ====================
+    let currentLang = 'ar';
+    let activeTab = 'home';
+
+    const sessionState = {
+      aidCount: 0,
+      donCount: 0,
+      medCount: 0,
+      ngoCount: 0,
+      medSequence: 1,
+      logs: []
+    };
+
+    // ==================== BILINGUAL CONTENT ====================
+    const i18n = {
+      ar: {
+        brand_name: 'منصة إنقاذ تعز',
+        brand_tagline: 'معاً لإنقاذ الإنسان، وبناء الأمل',
+        proto_badge: 'نسخة تجريبية أولية • غير مخصصة للبيانات الحقيقية',
+        hero_desc: 'منصة مستقلة لتنظيم طلبات المساعدة والتبرعات والرعاية الطبية، مع توثيق القرارات والعمليات وتعزيز الشفافية.',
+        sec_prefix: 'تنبيه أمان:',
+        sec_body: 'هذه واجهة تجريبية تعمل داخل المتصفح فقط. لا ترفع هويات أو جوازات أو تقارير طبية حقيقية، ولا ترسل أموالاً عبرها. لا يوجد حالياً خادم آمن أو قاعدة بيانات أو تحقق رسمي أو بوابة دفع.',
+        tab_home: 'الرئيسية',
+        tab_request: 'طلب مساعدة',
+        tab_donate: 'متبرع / مساهم',
+        tab_ngo: 'منظمة / جمعية',
+        tab_medical: 'الرعاية الطبية',
+        tab_admin: 'لوحة الإدارة التجريبية',
+        home_badge: 'بوابة العمل الإنساني والرقابي',
+        home_welcome_title: 'مرحباً بكم في منصة إنقاذ تعز',
+        home_welcome_desc: 'اختر القسم المناسب للتسجيل في هذه النسخة العرضية. صُممت المنصة لتنظيم الاستجابة الإنسانية والطبية في تعز وفق معايير الحوكمة الدولية والشفافية المطلقة.',
+        step_01: 'تسجيل الأسر المتضررة وطلب المساعدة',
+        step_02: 'استقبال بيانات المتبرعين والمساهمات',
+        step_03: 'تنظيم طلبات الرعاية الطبية',
+        principles_heading: 'مبادئ العمل',
+        prin_1_title: 'الاستقلالية',
+        prin_1_desc: 'خدمة الناس دون تبعية حزبية أو تمييز.',
+        prin_2_title: 'التحقق البشري',
+        prin_2_desc: 'الذكاء الاصطناعي أداة مساعدة، والقرار النهائي لمراجع مختص.',
+        prin_3_title: 'الشفافية',
+        prin_3_desc: 'توثيق مصادر الأموال وقرارات الصرف والإيصالات.',
+        prin_4_title: 'حماية الخصوصية',
+        prin_4_desc: 'عدم إظهار الهويات أو المعلومات الطبية للمتبرعين أو الجمهور.',
+        req_title: 'تسجيل أسرة متضررة / طلب مساعدة',
+        req_subtitle: 'حقول توضيحية لتصميم سير التسجيل. لا تدخل بيانات أشخاص حقيقيين في هذه النسخة.',
+        req_f_name: 'اسم رب الأسرة',
+        req_f_phone: 'رقم هاتف للتواصل',
+        req_f_district: 'المديرية / المنطقة',
+        req_f_marital: 'الحالة الاجتماعية',
+        req_f_income: 'نوع العمل / مصدر الدخل',
+        req_f_members: 'عدد أفراد الأسرة',
+        req_f_need: 'نوع الاحتياج',
+        req_f_urgency: 'درجة الاستعجال',
+        req_f_desc: 'شرح مختصر للحالة والاحتياج',
+        req_f_ack: 'أقر بأن البيانات المدخلة صحيحة، وأفهم أن التسجيل لا يعني الموافقة التلقائية على المساعدة.',
+        req_btn_preview: 'معاينة الطلب التجريبي',
+        req_btn_clear: 'مسح الحقول',
+        req_footnote: 'في النسخة الإنتاجية تُجمع وثائق الهوية وإثباتات الأسرة عبر قناة مشفرة ومحدودة الصلاحيات وبعد موافقة واضحة، ولا تُخزن في المتصفح.',
+        don_title: 'التبرع والمساهمة',
+        don_subtitle: 'تسجيل اهتمام المتبرع فقط؛ لا توجد تحويلات أو حسابات مصرفية مفعّلة في النموذج.',
+        don_f_type: 'نوع المساهمة',
+        don_f_name: 'الاسم',
+        don_f_visibility: 'طريقة الظهور',
+        don_f_contact: 'بيانات التواصل (اختياري)',
+        don_f_value: 'قيمة أو وصف المساهمة',
+        don_f_consent: 'أوافق على استخدام بيانات التواصل للتنسيق بشأن المساهمة فقط.',
+        don_btn_save: 'حفظ معاينة المساهمة',
+        don_notice: 'لا تُعلن أسماء المتبرعين أو مبالغهم إلا بموافقة صريحة. ويجب أن تتم التبرعات الفعلية عبر حساب مؤسسي معتمد وإيصال رسمي.',
+        ngo_title: 'تسجيل منظمة / جمعية / جهة مانحة',
+        ngo_subtitle: 'نموذج أولي لطلب التواصل والتحقق من الجهة.',
+        ngo_f_org: 'اسم المؤسسة',
+        ngo_f_type: 'نوع الجهة',
+        ngo_f_person: 'اسم مسؤول التواصل',
+        ngo_f_email: 'البريد الإلكتروني الرسمي',
+        ngo_f_areas: 'مجالات التعاون',
+        ngo_btn_send: 'إرسال طلب تواصل تجريبي',
+        med_title: 'قسم الرعاية الطبية',
+        med_subtitle: 'مسار إحالة ومراجعة للحالات الطبية عبر المستشفى والطبيب المختص.',
+        med_f_code: 'رمز ملف المريض (تجريبي)',
+        med_f_source: 'جهة الإحالة',
+        med_f_service: 'نوع الخدمة المطلوبة',
+        med_f_urgency: 'درجة الاستعجال الطبي',
+        med_f_summary: 'ملخص الإحالة غير التشخيصي',
+        med_f_consent: 'تم الحصول على موافقة المريض أو وليه على معالجة بياناته الصحية ومشاركتها مع الفريق الطبي المخول.',
+        med_btn_create: 'إنشاء إحالة تجريبية',
+        med_notice: 'لا يجوز أن يقرر التطبيق التشخيص أو العلاج أو أحقية العملية. الطبيب المرخص يقرر العلاج، وتراجع جهة مستقلة الفواتير والتكاليف. لا تُشارك الملفات الطبية مع المتبرعين أو الجمهور.',
+        adm_title: 'لوحة الإدارة التجريبية',
+        adm_subtitle: 'بيانات توضيحية فقط وليست سجلات حقيقية. لا يوجد تسجيل دخول أو صلاحيات فعلية في هذه النسخة.',
+        adm_btn_populate: '+ محاكاة بيانات جلسة',
+        cnt_aid_lbl: 'معاينات طلبات المساعدة في هذه الجلسة',
+        cnt_don_lbl: 'معاينات مساهمات في هذه الجلسة',
+        cnt_med_lbl: 'إحالات طبية تجريبية في هذه الجلسة',
+        adm_log_title: 'سجل المعاينات المنشأة في الجلسة الحالية',
+        wf_heading: 'سير اعتماد الطلب المقترح',
+        wf_col_stage: 'المرحلة',
+        wf_col_owner: 'المسؤول',
+        wf_col_action: 'الإجراء',
+        fin_heading: 'ضوابط مالية مقترحة',
+        btn_reset_session: 'إعادة ضبط أرقام هذه الجلسة',
+        modal_go_admin: 'عرض في لوحة الإدارة التجريبية',
+        modal_close: 'إغلاق المعاينة',
+        footer_disclaimer: 'منصة إنقاذ تعز – نموذج واجهة أولي قابل للتطوير، لا يمثل جهة مسجلة ولا يطلب تبرعات فعلية.'
+      },
+      en: {
+        brand_name: 'Taiz Rescue Platform',
+        brand_tagline: 'Together to save lives, and build hope',
+        proto_badge: 'Initial Prototype • Not intended for real personal data',
+        hero_desc: 'An independent platform to organize aid requests, donations, and medical care while documenting decisions and operations to strengthen transparency.',
+        sec_prefix: 'Security Notice:',
+        sec_body: 'This is a browser-only prototype interface. Do not upload real IDs, passports, or medical reports, and do not send real money. There is currently no secure server, database, official verification, or payment gateway.',
+        tab_home: 'Home',
+        tab_request: 'Request Aid',
+        tab_donate: 'Donor / Contributor',
+        tab_ngo: 'NGO / Organization',
+        tab_medical: 'Medical Care',
+        tab_admin: 'Demo Admin',
+        home_badge: 'Humanitarian & Accountability Portal',
+        home_welcome_title: 'Welcome to Taiz Rescue Platform',
+        home_welcome_desc: 'Select the appropriate section to register in this demonstration prototype. Designed to structure humanitarian and medical response in Taiz under international governance standards.',
+        step_01: 'Affected Family Registration & Aid Requests',
+        step_02: 'Donor & Contribution Intake',
+        step_03: 'Medical Care Request Coordination',
+        principles_heading: 'Core Working Principles',
+        prin_1_title: 'Independence',
+        prin_1_desc: 'Serving people without partisan affiliation or discrimination.',
+        prin_2_title: 'Human Verification',
+        prin_2_desc: 'AI is an assistive tool; the final decision rests with a qualified human reviewer.',
+        prin_3_title: 'Transparency',
+        prin_3_desc: 'Documenting funding sources, disbursement decisions, and receipts.',
+        prin_4_title: 'Privacy Protection',
+        prin_4_desc: 'Never exposing personal identities or medical records to donors or the public.',
+        req_title: 'Affected Family Registration / Aid Request',
+        req_subtitle: 'Illustrative fields for registration workflow design. Do not enter real personal information.',
+        req_f_name: 'Head of Household Name',
+        req_f_phone: 'Contact Phone Number',
+        req_f_district: 'District / Area',
+        req_f_marital: 'Marital Status',
+        req_f_income: 'Occupation / Income Source',
+        req_f_members: 'Household Size',
+        req_f_need: 'Type of Need',
+        req_f_urgency: 'Urgency Level',
+        req_f_desc: 'Brief Description of Case & Need',
+        req_f_ack: 'I confirm that the entered information is accurate and understand that registration does not guarantee automatic aid approval.',
+        req_btn_preview: 'Preview Demo Request',
+        req_btn_clear: 'Clear Fields',
+        req_footnote: 'In the production version, identity and household documents are collected via an encrypted, role-restricted channel after explicit consent and are never stored in the browser.',
+        don_title: 'Donation & Contribution',
+        don_subtitle: 'Donor interest registration only; no bank transfers or active payment accounts exist in this prototype.',
+        don_f_type: 'Contribution Type',
+        don_f_name: 'Name',
+        don_f_visibility: 'Display Preference',
+        don_f_contact: 'Contact Info (Optional)',
+        don_f_value: 'Contribution Value or Description',
+        don_f_consent: 'I agree to the use of my contact details solely to coordinate this contribution.',
+        don_btn_save: 'Save Contribution Preview',
+        don_notice: 'Donor names and amounts are never published without explicit consent. Actual donations must be processed through an accredited institutional account with an official receipt.',
+        ngo_title: 'Register Organization / Charity / Donor Agency',
+        ngo_subtitle: 'Initial form to request coordination and entity verification.',
+        ngo_f_org: 'Organization Name',
+        ngo_f_type: 'Entity Type',
+        ngo_f_person: 'Contact Person Name',
+        ngo_f_email: 'Official Email Address',
+        ngo_f_areas: 'Areas of Cooperation',
+        ngo_btn_send: 'Send Demo Contact Request',
+        med_title: 'Medical Care Department',
+        med_subtitle: 'Medical case referral and review pathway via hospital and specialist physician.',
+        med_f_code: 'Patient File Code (Demo)',
+        med_f_source: 'Referring Entity',
+        med_f_service: 'Required Service Type',
+        med_f_urgency: 'Medical Urgency Level',
+        med_f_summary: 'Non-Diagnostic Referral Summary',
+        med_f_consent: 'Patient or legal guardian consent has been obtained to process health data and share it with the authorized medical team.',
+        med_btn_create: 'Create Demo Referral',
+        med_notice: 'The application must never decide diagnosis, treatment, or surgical eligibility. A licensed physician determines treatment, and an independent entity audits invoices and costs. Medical files are never shared with donors or the public.',
+        adm_title: 'Demo Admin Dashboard',
+        adm_subtitle: 'Illustrative data only, not real records. No login or live permissions exist in this version.',
+        adm_btn_populate: '+ Simulate Session Data',
+        cnt_aid_lbl: 'Aid Request Previews in This Session',
+        cnt_don_lbl: 'Contribution Previews in This Session',
+        cnt_med_lbl: 'Demo Medical Referrals in This Session',
+        adm_log_title: 'Previews Created in Current Session',
+        wf_heading: 'Proposed Request Approval Workflow',
+        wf_col_stage: 'Stage',
+        wf_col_owner: 'Responsible Party',
+        wf_col_action: 'Action',
+        fin_heading: 'Proposed Financial Controls',
+        btn_reset_session: 'Reset Session Numbers',
+        modal_go_admin: 'View in Demo Admin',
+        modal_close: 'Close Preview',
+        footer_disclaimer: 'Taiz Rescue Platform – Initial developable UI prototype; does not represent a registered entity or solicit actual donations.'
+      }
+    };
+
+    const workflowStages = {
+      ar: [
+        { stage: '1. استلام الطلب', owner: 'النظام', action: 'رقم مرجعي وفحص اكتمال الحقول' },
+        { stage: '2. فحص التكرار والتناقض', owner: 'النظام + موظف مختص', action: 'إنذارات للمراجعة وليست حكماً آلياً' },
+        { stage: '3. التحقق من الوثائق', owner: 'مدقق مخول', action: 'مطابقة أصل الوثائق ومصدرها' },
+        { stage: '4. تقييم الاستحقاق', owner: 'مسؤول الاستحقاق', action: 'تقييم ميداني وفق معايير منشورة' },
+        { stage: '5. الاعتماد والصرف', owner: 'معتمد + مسؤول مالي', action: 'موافقة مزدوجة وإثبات استلام' },
+        { stage: '6. التدقيق', owner: 'مراجع مستقل', action: 'مطابقة كشف البنك والإيصالات والتقارير' }
+      ],
+      en: [
+        { stage: '1. Request Intake', owner: 'System', action: 'Reference ID & field completeness check' },
+        { stage: '2. Duplication & Anomaly Check', owner: 'System + Specialist Staff', action: 'Review alerts, never automated judgment' },
+        { stage: '3. Document Verification', owner: 'Authorized Auditor', action: 'Cross-checking original documents & sources' },
+        { stage: '4. Eligibility Assessment', owner: 'Eligibility Officer', action: 'Field evaluation per published criteria' },
+        { stage: '5. Approval & Disbursement', owner: 'Approver + Finance Officer', action: 'Dual sign-off & proof of receipt' },
+        { stage: '6. Audit', owner: 'Independent Auditor', action: 'Reconciling bank statements, receipts & reports' }
+      ]
+    };
+
+    const financialControls = {
+      ar: [
+        'حساب باسم كيان قانوني مستقل، وليس حساباً شخصياً أو حساب صيدلية.',
+        'موافقتان مستقلتان على الصرف.',
+        'فصل أموال المساعدات عن المصاريف التشغيلية ومكافآت العاملين.',
+        'مطابقة شهرية من مدقق مستقل ونشر تقرير إجمالي.',
+        'لا تُقبل فواتير المستشفى دون مراجعة مستقلة للخدمات والأسعار.'
+      ],
+      en: [
+        'Account held in the name of an independent legal entity, never a personal or pharmacy account.',
+        'Two independent approvals required for every disbursement.',
+        'Strict segregation of humanitarian aid funds from operational expenses and staff compensation.',
+        'Monthly reconciliation by an independent auditor with a published summary report.',
+        'Hospital invoices are never accepted without independent review of services and pricing.'
+      ]
+    };
+
+    // ==================== INITIALIZATION ====================
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      updateTabStyles();
+      renderAdminGovernance();
+      updateSessionCountersUI();
+    });
+
+    // ==================== NAVIGATION & LANGUAGE ====================
+    function switchTab(tabId) {
+      activeTab = tabId;
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+      const target = document.getElementById(`view-${tabId}`);
+      if (target) target.classList.remove('hidden');
+      updateTabStyles();
+      window.scrollTo({ top: 150, behavior: 'smooth' });
+    }
+
+    function updateTabStyles() {
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const isTarget = btn.getAttribute('data-tab') === activeTab;
+        if (isTarget) {
+          btn.classList.add('bg-brand-900', 'text-white', 'shadow-sm');
+          btn.classList.remove('bg-slate-100', 'text-slate-700', 'hover:bg-slate-200/70');
+        } else {
+          btn.classList.remove('bg-brand-900', 'text-white', 'shadow-sm');
+          btn.classList.add('bg-slate-100', 'text-slate-700', 'hover:bg-slate-200/70');
+        }
+      });
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'ar' ? 'en' : 'ar';
+      const html = document.documentElement;
+      html.setAttribute('lang', currentLang);
+      html.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
+      document.getElementById('lang-btn-text').textContent = currentLang === 'ar' ? 'English' : 'العربية';
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18n[currentLang][key]) {
+          el.textContent = i18n[currentLang][key];
+        }
+      });
+
+      const table = document.querySelector('#view-admin table');
+      if (table) {
+        table.classList.toggle('text-right', currentLang === 'ar');
+        table.classList.toggle('text-left', currentLang === 'en');
+      }
+
+      renderAdminGovernance();
+      renderSessionLogs();
+    }
+
+    // ==================== FORM SUBMISSIONS & PREVIEWS ====================
+    function submitAidRequest(e) {
+      e.preventDefault();
+      const headName = document.getElementById('req-head-name').value.trim();
+      const district = document.getElementById('req-district').value.trim();
+      const marital = document.getElementById('req-marital').value;
+      const income = document.getElementById('req-income').value.trim();
+      const members = document.getElementById('req-members').value;
+      const needType = document.getElementById('req-need-type').value;
+      const urgency = document.getElementById('req-urgency').value;
+      const summary = document.getElementById('req-summary').value.trim();
+
+      const refId = `TZ-REQ-${Math.floor(1000 + Math.random() * 9000)}`;
+      sessionState.aidCount += 1;
+      sessionState.logs.unshift({
+        ref: refId,
+        category: currentLang === 'ar' ? 'طلب مساعدة' : 'Aid Request',
+        detail: `${district} • ${needType} (${urgency})`,
+        badgeColor: 'bg-emerald-100 text-emerald-800'
+      });
+
+      updateSessionCountersUI();
+      openPreviewModal(
+        currentLang === 'ar' ? 'معاينة طلب المساعدة التجريبي' : 'Demo Aid Request Preview',
+        [
+          { label: currentLang === 'ar' ? 'الرقم المرجعي المؤقت' : 'Reference ID', value: refId },
+          { label: currentLang === 'ar' ? 'الاسم الرمزي' : 'Applicant Alias', value: headName },
+          { label: currentLang === 'ar' ? 'المديرية / المنطقة' : 'District', value: district },
+          { label: currentLang === 'ar' ? 'الحالة الاجتماعية' : 'Marital Status', value: marital },
+          { label: currentLang === 'ar' ? 'مصدر الدخل / الأفراد' : 'Income / Size', value: `${income} (${members})` },
+          { label: currentLang === 'ar' ? 'نوع الاحتياج والاستعجال' : 'Need & Urgency', value: `${needType} — ${urgency}` },
+          { label: currentLang === 'ar' ? 'الملخص' : 'Summary', value: summary }
+        ]
+      );
+    }
+
+    function submitDonationPreview(e) {
+      e.preventDefault();
+      const donType = document.getElementById('don-type').value;
+      const donName = document.getElementById('don-name').value.trim() || (currentLang === 'ar' ? 'فاعل خير' : 'Anonymous');
+      const visibility = document.getElementById('don-visibility').value;
+      const donValue = document.getElementById('don-value').value.trim();
+
+      const refId = `TZ-DON-${Math.floor(1000 + Math.random() * 9000)}`;
+      sessionState.donCount += 1;
+      sessionState.logs.unshift({
+        ref: refId,
+        category: currentLang === 'ar' ? 'معاينة مساهمة' : 'Contribution Preview',
+        detail: `${donType} • ${donValue}`,
+        badgeColor: 'bg-amber-100 text-amber-800'
+      });
+
+      updateSessionCountersUI();
+      openPreviewModal(
+        currentLang === 'ar' ? 'معاينة المساهمة المحفوظة' : 'Saved Contribution Preview',
+        [
+          { label: currentLang === 'ar' ? 'رمز المعاينة' : 'Preview Code', value: refId },
+          { label: currentLang === 'ar' ? 'نوع المساهمة' : 'Contribution Type', value: donType },
+          { label: currentLang === 'ar' ? 'المساهم' : 'Contributor', value: donName },
+          { label: currentLang === 'ar' ? 'طريقة الظهور' : 'Visibility', value: visibility },
+          { label: currentLang === 'ar' ? 'القيمة / الوصف' : 'Value / Description', value: donValue }
+        ]
+      );
+    }
+
+    function submitNgoRequest(e) {
+      e.preventDefault();
+      const orgName = document.getElementById('ngo-org-name').value.trim();
+      const orgType = document.getElementById('ngo-org-type').value;
+      const person = document.getElementById('ngo-contact-person').value.trim();
+      const email = document.getElementById('ngo-email').value.trim();
+      const areas = document.getElementById('ngo-areas').value.trim();
+
+      const refId = `TZ-NGO-${Math.floor(1000 + Math.random() * 9000)}`;
+      sessionState.ngoCount += 1;
+      sessionState.logs.unshift({
+        ref: refId,
+        category: currentLang === 'ar' ? 'تواصل مؤسسة' : 'NGO Partnership',
+        detail: `${orgName} (${orgType})`,
+        badgeColor: 'bg-blue-100 text-blue-800'
+      });
+
+      updateSessionCountersUI();
+      openPreviewModal(
+        currentLang === 'ar' ? 'معاينة طلب تواصل الجهة' : 'Organization Contact Preview',
+        [
+          { label: currentLang === 'ar' ? 'رمز الطلب' : 'Request ID', value: refId },
+          { label: currentLang === 'ar' ? 'اسم المؤسسة' : 'Organization', value: orgName },
+          { label: currentLang === 'ar' ? 'نوع الجهة' : 'Entity Type', value: orgType },
+          { label: currentLang === 'ar' ? 'مسؤول التواصل' : 'Focal Point', value: `${person} (${email})` },
+          { label: currentLang === 'ar' ? 'مجالات التعاون' : 'Cooperation Areas', value: areas }
+        ]
+      );
+    }
+
+    function submitMedicalReferral(e) {
+      e.preventDefault();
+      const patientCode = document.getElementById('med-patient-code').value.trim();
+      const source = document.getElementById('med-source').value.trim();
+      const service = document.getElementById('med-service').value;
+      const urgency = document.getElementById('med-urgency').value;
+      const summary = document.getElementById('med-summary').value.trim();
+
+      sessionState.medCount += 1;
+      sessionState.medSequence += 1;
+      document.getElementById('med-patient-code').value = `MED-DEMO-${String(sessionState.medSequence).padStart(3, '0')}`;
+
+      sessionState.logs.unshift({
+        ref: patientCode,
+        category: currentLang === 'ar' ? 'إحالة طبية' : 'Medical Referral',
+        detail: `${source} • ${service} (${urgency})`,
+        badgeColor: 'bg-teal-100 text-teal-800'
+      });
+
+      updateSessionCountersUI();
+      openPreviewModal(
+        currentLang === 'ar' ? 'معاينة الإحالة الطبية التجريبية' : 'Demo Medical Referral Preview',
+        [
+          { label: currentLang === 'ar' ? 'رمز ملف المريض' : 'Patient File Code', value: patientCode },
+          { label: currentLang === 'ar' ? 'جهة الإحالة' : 'Referring Entity', value: source },
+          { label: currentLang === 'ar' ? 'الخدمة المطلوبة' : 'Required Service', value: service },
+          { label: currentLang === 'ar' ? 'درجة الاستعجال' : 'Medical Urgency', value: urgency },
+          { label: currentLang === 'ar' ? 'ملخص الإحالة' : 'Referral Summary', value: summary }
+        ]
+      );
+    }
+
+    function resetForm(formId) {
+      const form = document.getElementById(formId);
+      if (form) form.reset();
+      showToast(currentLang === 'ar' ? 'تم مسح الحقول' : 'Fields cleared');
+    }
+
+    // ==================== ADMIN COUNTERS & RENDERERS ====================
+    function updateSessionCountersUI() {
+      document.getElementById('count-aid').textContent = sessionState.aidCount;
+      document.getElementById('count-don').textContent = sessionState.donCount;
+      document.getElementById('count-med').textContent = sessionState.medCount;
+
+      const total = sessionState.aidCount + sessionState.donCount + sessionState.medCount;
+      document.getElementById('nav-total-badge').textContent = total;
+      renderSessionLogs();
+    }
+
+    function renderSessionLogs() {
+      const wrapper = document.getElementById('session-log-wrapper');
+      const list = document.getElementById('session-log-list');
+      if (!wrapper || !list) return;
+
+      if (sessionState.logs.length === 0) {
+        wrapper.classList.add('hidden');
+        return;
+      }
+
+      wrapper.classList.remove('hidden');
+      list.innerHTML = sessionState.logs.map(item => `
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="font-mono font-extrabold text-brand-950">${item.ref}</span>
+            <span class="px-2 py-0.5 rounded-full font-bold ${item.badgeColor}">${item.category}</span>
+          </div>
+          <span class="text-slate-600 font-medium">${item.detail}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderAdminGovernance() {
+      const wfBody = document.getElementById('workflow-tbody');
+      if (wfBody) {
+        wfBody.innerHTML = workflowStages[currentLang].map(row => `
+          <tr class="hover:bg-slate-50/80 transition">
+            <td class="py-3.5 px-4 font-extrabold text-brand-950 whitespace-nowrap">${row.stage}</td>
+            <td class="py-3.5 px-4 font-bold text-slate-700 whitespace-nowrap">${row.owner}</td>
+            <td class="py-3.5 px-4 text-slate-600">${row.action}</td>
+          </tr>
+        `).join('');
+      }
+
+      const finList = document.getElementById('financial-controls-list');
+      if (finList) {
+        finList.innerHTML = financialControls[currentLang].map(item => `
+          <li class="flex items-start gap-2.5">
+            <span class="w-5 h-5 rounded-full bg-emerald-100 text-brand-800 flex items-center justify-center flex-shrink-0 mt-0.5 text-xs font-black">•</span>
+            <span class="leading-relaxed font-medium text-slate-700">${item}</span>
+          </li>
+        `).join('');
+      }
+    }
+
+    function populateSampleSessionData() {
+      sessionState.aidCount += 2;
+      sessionState.donCount += 1;
+      sessionState.medCount += 1;
+      sessionState.logs.unshift(
+        {
+          ref: 'TZ-REQ-8410',
+          category: currentLang === 'ar' ? 'طلب مساعدة' : 'Aid Request',
+          detail: currentLang === 'ar' ? 'المظفر • سلة غذائية (عاجلة جداً)' : 'Al-Mudhaffar • Food Basket (Urgent)',
+          badgeColor: 'bg-emerald-100 text-emerald-800'
+        },
+        {
+          ref: 'MED-DEMO-009',
+          category: currentLang === 'ar' ? 'إحالة طبية' : 'Medical Referral',
+          detail: currentLang === 'ar' ? 'مستشفى الثورة • فحوصات وتشخيص' : 'Al-Thawra Hospital • Diagnostics',
+          badgeColor: 'bg-teal-100 text-teal-800'
+        },
+        {
+          ref: 'TZ-DON-3921',
+          category: currentLang === 'ar' ? 'معاينة مساهمة' : 'Contribution Preview',
+          detail: currentLang === 'ar' ? 'تبرع مالي • كفالة 3 سلال غذائية' : 'Financial • 3 Food Baskets',
+          badgeColor: 'bg-amber-100 text-amber-800'
+        }
+      );
+      updateSessionCountersUI();
+      showToast(currentLang === 'ar' ? 'تمت إضافة بيانات تجريبية للجلسة' : 'Sample session data added');
+    }
+
+    function resetSessionNumbers() {
+      sessionState.aidCount = 0;
+      sessionState.donCount = 0;
+      sessionState.medCount = 0;
+      sessionState.ngoCount = 0;
+      sessionState.logs = [];
+      updateSessionCountersUI();
+      showToast(currentLang === 'ar' ? 'تمت إعادة ضبط أرقام هذه الجلسة إلى 0' : 'Session counters reset to 0');
+    }
+
+    // ==================== MODAL & TOAST HELPERS ====================
+    function openPreviewModal(title, rows) {
+      document.getElementById('modal-title').textContent = title;
+      const body = document.getElementById('modal-body');
+      body.innerHTML = rows.map(r => `
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          <span class="text-xs font-bold text-slate-500">${r.label}</span>
+          <span class="text-xs sm:text-sm font-extrabold text-slate-900">${r.value}</span>
+        </div>
+      `).join('');
+      const modal = document.getElementById('preview-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function closePreviewModal() {
+      const modal = document.getElementById('preview-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function showToast(msg) {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      el.className = 'bg-brand-950 text-white border border-emerald-500/30 px-4 py-3 rounded-2xl shadow-xl text-xs sm:text-sm font-bold text-center animate-view pointer-events-auto';
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 0.25s ease';
+        setTimeout(() => el.remove(), 250);
+      }, 2800);
+    }
+  </script>
+</body>
+</html>
+```
